@@ -17,6 +17,72 @@
     </style>
 </head>
 <body>
+  <style>
+    .custom-select{
+      padding: 12px;
+      width: 80%;
+    }
+    .store-item {
+      color: black;
+      text-decoration: none;
+    }
+    .store-item:hover {
+      color: rgb(94, 11, 55);
+    }
+    .store-item h5 {
+      color: deeppink;
+      margin-top: 0;
+      margin-bottom: 0;
+      margin-right: 0;
+      margin-left: 0;
+      padding-top: 0;
+      padding-bottom: 0;
+      padding-right: 0;
+      padding-left: 0;
+      font-size: 20px;
+    }
+    .store-item h6 {
+      font-size: 12px;
+      margin: 0 0 8px;
+      color: black;
+      padding-top: 0;
+      padding-bottom: 0;
+      padding-right: 0;
+      padding-left: 0;
+    }
+
+    .store-item p {
+      font-size: 16px;
+      margin: 0 0 16px;
+    }
+    .store-item hr {
+      margin: 1rem 0;
+    }
+    /* width */
+    .storeDisplay::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    /* Track */
+    .storeDisplay::-webkit-scrollbar-track {
+      border-radius: 10px;
+    }
+
+    /* Handle */
+    .storeDisplay::-webkit-scrollbar-thumb {
+      background: deeppink;
+      border-radius: 10px;
+    }
+
+    /* Handle on hover */
+    .storeDisplay::-webkit-scrollbar-thumb:hover {
+      background: rgb(94, 11, 55);
+    }
+
+    .dropdown label{
+      padding: 8px;
+    }
+  </style>
 	<script
 	src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB1KcecHwDMwQvoIkOhE7LQfPzguVoIq98&libraries=places">
   </script>
@@ -62,9 +128,147 @@
     },
   });
 
+
+
 });
 
 </script>
+<script>
+  var printData;
+  var storeData;
+  var cities;
+  var outlets;
+  var states;
+
+  // print array of printData into table
+  function arrayToTable(tableData) {
+    var table = $("<table></table>");
+    $(tableData).each(function (i, rowData) {
+      var row = $("<tr></tr>");
+      $(rowData).each(function (j, cellData) {
+        row.append($("<td>" + cellData + "</td>"));
+      });
+      table.append(row);
+    });
+    return table;
+  }
+  function arrayToTable(tableData) {
+    var table = "";
+    $(tableData).each(function (i, rowData) {
+      table +=
+        '<a href= "http://www.google.com/maps/place/' +
+        rowData[6] +
+        "," +
+        rowData[7] +
+        '"target="_blank" class="store-item">' +
+        "<h5>" +
+        rowData[1] +
+        "</h5>" +
+        "<h6>" +
+        rowData[2] +
+        "</h6>" +
+        "<p>" +
+        rowData[3] +
+        "</p></a><hr />";
+    });
+    return table;
+  }
+
+  //this generates filtered printData array which can be populated
+  function filterStores(reset = 0) {
+    var selectedOutlet = $("#outletDropDown").val();
+    var selectedCity = $("#cityDropDown").val();
+    var selectedState = $("#stateDropDown").val();
+    if (reset) {
+      selectedCity = "default";
+      selectedOutlet = "default";
+      selectedState = "default";
+    }
+    printData = [];
+
+    //filtering storeData according to selected dropdown
+    $(storeData).each((i, ele) => {
+      if (
+        (selectedCity == "default" || ele[5] == selectedCity) &&
+        (selectedOutlet == "default" || ele[2] == selectedOutlet) &&
+        (selectedState == "default" || ele[4] == selectedState)
+      ) {
+        printData.push(ele);
+      }
+    });
+    console.log(printData.length);
+
+    //sending to populate table
+    // $("#data").html(arrayToTable(printData));
+    $(".storeDisplay").html(arrayToTable(printData));
+
+    //creating filtered cities outlet and states acc to printData
+    cities = [];
+    outlets = [];
+    states = [];
+    $(printData).each(function (i, ele) {
+      cities.push(ele[5]);
+      outlets.push(ele[2]);
+      states.push(ele[4]);
+    });
+    
+
+    var uniqueNames = [];
+    $.each(cities, function (i, el) {
+      if ($.inArray(el, uniqueNames) === -1) uniqueNames.push(el);
+    });
+    cities = uniqueNames;
+    uniqueNames = [];
+    $.each(outlets, function (i, el) {
+      if ($.inArray(el, uniqueNames) === -1) uniqueNames.push(el);
+    });
+    outlets = uniqueNames;
+    uniqueNames = [];
+    $.each(states, function (i, el) {
+      if ($.inArray(el, uniqueNames) === -1) uniqueNames.push(el);
+    });
+    states = uniqueNames;
+
+    //generating options to fill in <select>
+    var options = '<option value="default">Select City</option>';
+    $(cities).each((i, ele) => {
+      options += '<option value="' + ele + '">' + ele + "</option>";
+    });
+    $("#cityDropDown").html(options);
+    $("#cityDropDown").val(selectedCity);
+
+    options = '<option value="default">Select State</option>';
+    $(states).each((i, ele) => {
+      options += '<option value="' + ele + '">' + ele + "</option>";
+    });
+    $("#stateDropDown").html(options);
+    $("#stateDropDown").val(selectedState);
+    
+    options = '<option value="default">Select Outlet</option>';
+    $(outlets).each((i, ele) => {
+      options += '<option value="' + ele + '">' + ele + "</option>";
+    });
+    $("#outletDropDown").html(options);
+    $("#outletDropDown").val(selectedOutlet);
+  }
+
+  // getting data csv and storing in storeData
+  $.ajax({
+    type: "GET",
+    url: "https://cdn.shopify.com/s/files/1/0577/8607/3297/files/store_data.csv?v=1624887731",
+    success: function (data) {
+      storeData = Papa.parse(data).data;
+      cities = [];
+      outlets = [];
+      states = [];
+      storeData.shift();
+      storeData.pop();
+
+      filterStores();
+    },
+  });
+</script>
+
   <link rel="shortcut icon" href="img/favicon.ico" type="image/x-icon">
   <link rel="icon" href="img/favicon.ico" type="image/x-icon">
   <link href="http://fonts.googleapis.com/css?family=Lato:100,200,300,400,500,600,700" rel="stylesheet" type="text/css">
@@ -79,15 +283,51 @@
 	<div class="container-fluid" id="wrapper">
 		<content>
 			<div class="container">
-				<div class="row">
-				    <div id="store-panel"></div>
-	    			<div id="map-canvas"></div>
-    			</div>
-			</div>
+
+      
+          <div class="row">
+            <div class="dropdown col-md-3">
+              <label style="display: block;" for="outlets">Retial Outlet:</label>
+              <select
+                id="outletDropDown"
+                name="outlet"
+                class="custom-select"
+                onchange="filterStores()"
+              >
+                <option value="default">Select Outlet</option>
+              </select>
+            </div>
+            <div class="dropdown col-md-3">
+              <label style="display: block;" for="states">State:</label>
+              <select
+                id="stateDropDown"
+                name="state"
+                class="custom-select"
+                onchange="filterStores()"
+              >
+                <option value="default">Select State</option>
+              </select>
+            </div>
+            <div class="dropdown col-md-3">
+              <label style="display: block;" for="cities">City:</label>
+              <select
+                id="cityDropDown"
+                name="city"
+                class="custom-select"
+                onchange="filterStores()"
+              >
+                <option value="default">Select City</option>
+              </select>
+            </div>
+            
+          <button onclick="filterStores(1)" style="width: 100px; height: 40px;margin: 24px 10px" class="col-md-3">RESET</button>
+          </div>
+	    			
+          <div class="row">
+          <div id="map-canvas" class="col-md-9"></div>
+          <div class="storeDisplay col-md-3" style="height: 500px;margin-top :24px; overflow-y: scroll"></div>
+        </div>
 		</content>
 	</div>
-
-	<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
-	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 </body>
 </html>
