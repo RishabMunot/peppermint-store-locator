@@ -9,8 +9,7 @@
 	<title>Peppermint</title>
   
     <style>
-      body { font-family: sans-serif; }
-      #map-canvas, #store-panel { height: 800px; width: 800px;}
+      #map-canvas, #store-panel { height: 800px; width: 100%;}
       #store-panel { width: 300px; float: left; margin-right: 30px; }
       #store-panel .feature-filter label { width: 130px; }
       p.attribution, p.attribution a { color: #666; }
@@ -286,7 +285,7 @@
 
       
           <div class="row">
-            <div class="dropdown col-md-3">
+            <div class="dropdown col-sm-3">
               <label style="display: block;" for="outlets">Retial Outlet:</label>
               <select
                 id="outletDropDown"
@@ -297,7 +296,7 @@
                 <option value="default">Select Outlet</option>
               </select>
             </div>
-            <div class="dropdown col-md-3">
+            <div class="dropdown col-sm-3">
               <label style="display: block;" for="states">State:</label>
               <select
                 id="stateDropDown"
@@ -308,7 +307,7 @@
                 <option value="default">Select State</option>
               </select>
             </div>
-            <div class="dropdown col-md-3">
+            <div class="dropdown col-sm-3">
               <label style="display: block;" for="cities">City:</label>
               <select
                 id="cityDropDown"
@@ -324,7 +323,7 @@
           </div>
 	    			
           <div class="row">
-          <div id="map-canvas" class="col-md-9"></div>
+          <div id="map-canvas" class="col-md-7"></div>
           <div class="storeDisplay col-md-3" style="height: 500px;margin-top :24px; overflow-y: scroll"></div>
         </div>
 		</content>
