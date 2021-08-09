@@ -89,8 +89,9 @@
 	src="https://ajax.googleapis.com/ajax/libs/jquery/1.6/jquery.min.js">
   </script>
   <script>
+    var map
 	  google.maps.event.addDomListener(window, 'load', function() {
-  var map = new google.maps.Map(document.getElementById('map-canvas'), {
+  map = new google.maps.Map(document.getElementById('map-canvas'), {
     center: new google.maps.LatLng(24.098995,82.494624),
     zoom: 5,
     mapTypeId: google.maps.MapTypeId.ROADMAP
@@ -112,16 +113,17 @@
       storeData.shift();
       storeData.pop();
 
-      // Create markers.
-      storeData.forEach(store => {
-        console.log(store);
-        const marker = new google.maps.Marker({
-          
-          position:  new google.maps.LatLng(store[6],store[7]),
-          icon: 'https://cdn.shopify.com/s/files/1/0585/2230/4673/files/customMarker.png?v=1628341257',
-          map: map,
-        });
-      });
+      uniqueNames = [];
+    $.each(outlets, function (i, el) {
+      if ($.inArray(el, uniqueNames) === -1) uniqueNames.push(el);
+    });
+    outlets = uniqueNames;
+      states = [];
+      storeData.shift();
+      storeData.pop();
+
+      filterStores();
+
       
       
     },
@@ -141,17 +143,6 @@
 
   // print array of printData into table
   function arrayToTable(tableData) {
-    var table = $("<table></table>");
-    $(tableData).each(function (i, rowData) {
-      var row = $("<tr></tr>");
-      $(rowData).each(function (j, cellData) {
-        row.append($("<td>" + cellData + "</td>"));
-      });
-      table.append(row);
-    });
-    return table;
-  }
-  function arrayToTable(tableData) {
     var table = "";
     $(tableData).each(function (i, rowData) {
       table +=
@@ -168,104 +159,162 @@
         "</h6>" +
         "<p>" +
         rowData[3] +
-        "</p></div></a><hr />";
+        "</p></div></a>";
     });
     return table;
   }
 
-  //this generates filtered printData array which can be populated
-  function filterStores(reset = 0) {
-    var selectedOutlet = $("#outletDropDown").val();
-    var selectedCity = $("#cityDropDown").val();
-    var selectedState = $("#stateDropDown").val();
-    if (reset) {
-      selectedCity = "default";
-      selectedOutlet = "default";
-      selectedState = "default";
-    }
-    printData = [];
+        //this generates filtered printData array which can be populated
+        function filterStores(reset = 0) {
+          var selectedOutlet = $("#outletDropDown").val();
+          var selectedCity = $("#cityDropDown").val();
+          var selectedState = $("#stateDropDown").val();
+          if (reset) {
+            selectedCity = "default";
+            selectedOutlet = "default";
+            selectedState = "default";
+          }
+          printData = [];
 
-    //filtering storeData according to selected dropdown
-    $(storeData).each((i, ele) => {
-      if (
-        (selectedCity == "default" || ele[5] == selectedCity) &&
-        (selectedOutlet == "default" || ele[2] == selectedOutlet) &&
-        (selectedState == "default" || ele[4] == selectedState)
-      ) {
-        printData.push(ele);
-      }
-    });
-    console.log(printData.length);
+          //filtering storeData according to selected dropdown
+          $(storeData).each((i, ele) => {
+            if (
+              (selectedCity == "default" || ele[5] == selectedCity) &&
+              (selectedOutlet == "default" || ele[2] == selectedOutlet) &&
+              (selectedState == "default" || ele[4] == selectedState)
+            ) {
+              printData.push(ele);
+            }
+          });
+          console.log(printData.length);
 
-    //sending to populate table
-    // $("#data").html(arrayToTable(printData));
-    $(".storeDisplay").html(arrayToTable(printData));
+          //sending to populate table
+          // $("#data").html(arrayToTable(printData));
+          $(".storeDisplay").html(arrayToTable(printData));
+          
+      // Create markers.
 
-    //creating filtered cities outlet and states acc to printData
-    cities = [];
-    outlets = [];
-    states = [];
-    $(printData).each(function (i, ele) {
-      cities.push(ele[5]);
-      outlets.push(ele[2]);
-      states.push(ele[4]);
-    });
-    
+      var total = 0;
+      var count = 0;
 
-    var uniqueNames = [];
-    $.each(cities, function (i, el) {
-      if ($.inArray(el, uniqueNames) === -1) uniqueNames.push(el);
-    });
-    cities = uniqueNames;
-    uniqueNames = [];
-    $.each(outlets, function (i, el) {
-      if ($.inArray(el, uniqueNames) === -1) uniqueNames.push(el);
-    });
-    outlets = uniqueNames;
-    uniqueNames = [];
-    $.each(states, function (i, el) {
-      if ($.inArray(el, uniqueNames) === -1) uniqueNames.push(el);
-    });
-    states = uniqueNames;
+      jQuery.each(printData, function(index, value) {
+      total += parseFloat(value[6]);
+      count++;
+      });
+      
+      var cenLat= total/count;
 
-    //generating options to fill in <select>
-    var options = '<option value="default">Select City</option>';
-    $(cities).each((i, ele) => {
-      options += '<option value="' + ele + '">' + ele + "</option>";
-    });
-    $("#cityDropDown").html(options);
-    $("#cityDropDown").val(selectedCity);
+      total = 0;
+      count = 0;
 
-    options = '<option value="default">Select State</option>';
-    $(states).each((i, ele) => {
-      options += '<option value="' + ele + '">' + ele + "</option>";
-    });
-    $("#stateDropDown").html(options);
-    $("#stateDropDown").val(selectedState);
-    
-    options = '<option value="default">Select Outlet</option>';
-    $(outlets).each((i, ele) => {
-      options += '<option value="' + ele + '">' + ele + "</option>";
-    });
-    $("#outletDropDown").html(options);
-    $("#outletDropDown").val(selectedOutlet);
-  }
+      jQuery.each(printData, function(index, value) {
+      total += parseFloat(value[7]);
+      count++;
+      });
+      var cenLong= total/count;
+
+      map = new google.maps.Map(document.getElementById('map-canvas'), {
+    center: new google.maps.LatLng(cenLat,cenLong),
+    zoom: 5,
+    mapTypeId: google.maps.MapTypeId.ROADMAP
+  });
+
+
+
+      var latlng = [];
+      printData.forEach(store => {
+          latlng.push(new google.maps.LatLng(store[6],store[7]));
+      });
+      latlng.forEach(ll => {
+        // console.log(store);
+        const marker = new google.maps.Marker({
+          animation: google.maps.Animation.DROP,
+          position:  ll,
+          icon: 'https://cdn.shopify.com/s/files/1/0585/2230/4673/files/customMarker.png?v=1628341257',
+          map: map,
+        });
+      });
+var latlngbounds = new google.maps.LatLngBounds();
+for (var i = 0; i < latlng.length; i++) {
+    latlngbounds.extend(latlng[i]);
+}
+map.fitBounds(latlngbounds);
+
+          //creating filtered cities outlet and states acc to printData
+          cities = [];
+          outlets = [];
+          states = [];
+          $(printData).each(function (i, ele) {
+            cities.push(ele[5]);
+            outlets.push(ele[2]);
+            states.push(ele[4]);
+          });
+          
+
+          var uniqueNames = [];
+          $.each(cities, function (i, el) {
+            if ($.inArray(el, uniqueNames) === -1) uniqueNames.push(el);
+          });
+          cities = uniqueNames;
+          uniqueNames = [];
+          $.each(outlets, function (i, el) {
+            if ($.inArray(el, uniqueNames) === -1) uniqueNames.push(el);
+          });
+          outlets = uniqueNames;
+          uniqueNames = [];
+          $.each(states, function (i, el) {
+            if ($.inArray(el, uniqueNames) === -1) uniqueNames.push(el);
+          });
+          states = uniqueNames;
+
+          //generating options to fill in <select>
+          var options = '<option value="default">Select City</option>';
+          $(cities).each((i, ele) => {
+            options += '<option value="' + ele + '">' + ele + "</option>";
+          });
+          $("#cityDropDown").html(options);
+          $("#cityDropDown").val(selectedCity);
+
+          options = '<option value="default">Select State</option>';
+          $(states).each((i, ele) => {
+            options += '<option value="' + ele + '">' + ele + "</option>";
+          });
+          $("#stateDropDown").html(options);
+          $("#stateDropDown").val(selectedState);
+          
+          options = '<option value="default">Select Outlet</option>';
+          $(outlets).each((i, ele) => {
+            options += '<option value="' + ele + '">' + ele + "</option>";
+          });
+          $("#outletDropDown").html(options);
+          $("#outletDropDown").val(selectedOutlet);
+        }
+
 
   // getting data csv and storing in storeData
-  $.ajax({
-    type: "GET",
-    url: "https://cdn.shopify.com/s/files/1/0577/8607/3297/files/store_data.csv?v=1624887731",
-    success: function (data) {
-      storeData = Papa.parse(data).data;
-      cities = [];
-      outlets = [];
-      states = [];
-      storeData.shift();
-      storeData.pop();
+  // $.ajax({
+  //   type: "GET",
+  //   url: "https://cdn.shopify.com/s/files/1/0577/8607/3297/files/store_data.csv?v=1624887731",
+  //   success: function (data) {
+  //     storeData = Papa.parse(data).data;
+  //     cities = [];
+  //     outlets = [];
+  //     $(printData).each(function (i, ele) {
+  //     outlets.push(ele[2]);
+  //   });
 
-      filterStores();
-    },
-  });
+  //     uniqueNames = [];
+  //   $.each(outlets, function (i, el) {
+  //     if ($.inArray(el, uniqueNames) === -1) uniqueNames.push(el);
+  //   });
+  //   outlets = uniqueNames;
+  //     states = [];
+  //     storeData.shift();
+  //     storeData.pop();
+
+  //     filterStores();
+  //   },
+  // });
 </script>
 
   <link rel="shortcut icon" href="img/favicon.ico" type="image/x-icon">
@@ -279,7 +328,7 @@
   <link href="css/storelocator.css" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/4.1.2/papaparse.js"></script>
 
-	<div class="" id="wrapper">
+	<div class="" style="width: 100%;" id="wrapper">
 		     
           <div class="row" style="background-color: #fdf0f3; padding-top: 16px;padding-bottom: 16px;padding-left: 16px;">
             <div class="dropdown col-sm-3">
