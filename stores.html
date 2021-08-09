@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+    <meta content="IE=edge" http-equiv="X-UA-Compatible">
+    <meta content="width=device-width" name="viewport">
+    <meta content="yes" name="apple-mobile-web-app-capable">
+    <meta name="HandheldFriendly" content="True">
+	<title>Peppermint</title>
+  
+    <style>
+      body { font-family: sans-serif; }
+      #map-canvas, #store-panel { height: 800px; width: 800px;}
+      #store-panel { width: 300px; float: left; margin-right: 30px; }
+      #store-panel .feature-filter label { width: 130px; }
+      p.attribution, p.attribution a { color: #666; }
+    </style>
+</head>
+<body>
+	<script
+	src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB1KcecHwDMwQvoIkOhE7LQfPzguVoIq98&libraries=places">
+  </script>
+  <script
+	src="https://ajax.googleapis.com/ajax/libs/jquery/1.6/jquery.min.js">
+  </script>
+  <script>
+	  google.maps.event.addDomListener(window, 'load', function() {
+  var map = new google.maps.Map(document.getElementById('map-canvas'), {
+    center: new google.maps.LatLng(24.098995,82.494624),
+    zoom: 5,
+    mapTypeId: google.maps.MapTypeId.ROADMAP
+  });
+
+  storeData = []
+  var iconBase = 'https://maps.google.com/mapfiles/kml/shapes/';
+ 
+  var panelDiv = document.getElementById('store-panel');
+   // getting data csv and storing in storeData
+   $.ajax({
+    type: "GET",
+    url: "https://cdn.shopify.com/s/files/1/0577/8607/3297/files/store_data.csv?v=1624887731",
+    success: function (data) {
+      storeData = Papa.parse(data).data;
+      cities = [];
+      outlets = [];
+      states = [];
+      storeData.shift();
+      storeData.pop();
+
+      // Create markers.
+      storeData.forEach(store => {
+        console.log(store);
+        const marker = new google.maps.Marker({
+          
+          position:  new google.maps.LatLng(store[6],store[7]),
+          icon: 'https://cdn.shopify.com/s/files/1/0585/2230/4673/files/customMarker.png?v=1628341257',
+          map: map,
+        });
+      });
+      
+      
+    },
+  });
+
+});
+
+</script>
+  <link rel="shortcut icon" href="img/favicon.ico" type="image/x-icon">
+  <link rel="icon" href="img/favicon.ico" type="image/x-icon">
+  <link href="http://fonts.googleapis.com/css?family=Lato:100,200,300,400,500,600,700" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css">
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet">
+  <link href="css/bootstrap-social.css" rel="stylesheet">
+  <link href="css/style.css" rel="stylesheet">
+  <link href="css/storelocator.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/4.1.2/papaparse.js"></script>
+
+	<div class="container-fluid" id="wrapper">
+		<content>
+			<div class="container">
+				<div class="row">
+				    <div id="store-panel"></div>
+	    			<div id="map-canvas"></div>
+    			</div>
+			</div>
+		</content>
+	</div>
+
+	<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</body>
+</html>
